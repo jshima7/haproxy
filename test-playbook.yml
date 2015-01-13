@@ -1,0 +1,37 @@
+- hosts: node2
+  sudo: yes
+  gather_facts: no
+  roles:
+  - role: haproxy
+    haproxy_version: 1.5
+    haproxy_frontends:
+      - name: 'frontend-http'
+        ip: '192.168.33.13'
+        port: '80'
+        maxconn: '1000'
+        acl:
+          - name: 'url_blog'
+            condition: 'path_beg /blog'
+        use_backend:
+          - name: 'backend-blog'
+            condition: 'if url_blog'
+        default_backend: 'backend-http'
+    haproxy_backends:
+      - name: 'backend-http'
+        balance: 'roundrobin'
+        servers:
+          - name: 'web01'
+            ip: '192.168.33.15'
+            port: '80'
+          - name: 'web02'
+            ip: '192.168.33.16'
+            port: '80'
+      - name: 'backend-blog'
+        balance: 'roundrobin'
+        servers:
+          - name: 'web01'
+            ip: '192.168.33.15'
+            port: '80'
+          - name: 'web03'
+            ip: '192.168.33.14'
+            port: '80'
